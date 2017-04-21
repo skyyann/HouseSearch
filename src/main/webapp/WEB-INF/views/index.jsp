@@ -42,19 +42,23 @@
         map.getCity(function(data) {
             if (data['citycode'] && typeof data['citycode'] === 'string') {
                 document.getElementById('city').innerHTML = (data['city'] || data['province']);
-                document.getElementById('citycode').innerHTML = data['city'];
+                document.getElementById('citycode').innerHTML = data['citycode'];
             }
         });
     }
     function serach() {
-        $.post(
-            "HouseSearch",
-            {
+        $.ajax({
+            type:"POST",
+            url:"HouseSearch",
+            data:{
                 cityCode:document.getElementById('citycode').innerHTML,
-                minPrice:document.getElementById('minprice').val(),
-                maxPrice:document.getElementById('maxprice').val()
+                minPrice:document.getElementById('minprice').value,
+                maxPrice:document.getElementById('maxprice').value
+            },
+            success:function(data){
+                var test = data;
             }
-        );
+        });
     }
 </script>
 </html>
