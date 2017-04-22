@@ -53,38 +53,37 @@
         $.ajax({
             type: "POST",
             url: "HouseSearch",
+            async: false,
             data: {
                 cityCode: document.getElementById('citycode').innerHTML,
                 minPrice: document.getElementById('minprice').value,
                 maxPrice: document.getElementById('maxprice').value
             },
             success: function (data) {
-                var test = data[0];
-                addMarker(data);
+                for (var key in data) {
+                    addMarker(data[key]);
+                }
             }
         });
     }
-    function addMarker(data) {
+    function addMarker(info) {
         var newGeocoder = new AMap.Geocoder({
             city: document.getElementById('citycode').innerHTML,
-            radius: 1000 //范围，默认：500
-        })
-        for(var index in data){
-            newGeocoder.getLocation(data[index].houseLocation, function (status, result) {
-                if (status === 'complete' && result.info === 'OK') {
-                    var geocode = result.geocodes[0];
-                    marker = new AMap.Marker({
-                        icon: "http://webapi.amap.com/theme/v1.3/markers/n/mark_b.png",
-                        position: [geocode.location.getLng(), geocode.location.getLat()]
-                    });
-                    marker.content = "<div><a target = '_blank' href='" + data[index].houseURL + "'>房源：" + data[index].houseTitle + "  租金：" + data[index].money + "</a><div>"
-                    marker.setMap(map);
-                    marker.on('click', markClick);
-                }
-            });
-        }
+            radius: 10000 //范围，默认：500
+        }).getLocation(info.houseLocation, function (status, result) {
+            if (status === 'complete' && result.info === 'OK') {
+                var geocode = result.geocodes[0];
+                marker = new AMap.Marker({
+                    icon: "http://webapi.amap.com/theme/v1.3/markers/n/mark_b.png",
+                    position: [geocode.location.getLng(), geocode.location.getLat()]
+                });
+                marker.content = "<div><a target = '_blank' href='" + info.houseURL + "'>房源：" + info.houseTitle + "  租金：" + info.money + "</a><div>"
+                marker.setMap(map);
+                marker.on('click', markClick);
+            }
+        });
     }
-    function markClick(e){
+    function markClick(e) {
         var infoWindow = new AMap.InfoWindow({offset: new AMap.Pixel(0, -30)});
         infoWindow.setContent(e.target.content);
         infoWindow.open(map, e.target.getPosition());
