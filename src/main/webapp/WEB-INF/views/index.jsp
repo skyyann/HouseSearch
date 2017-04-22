@@ -60,30 +60,34 @@
             },
             success: function (data) {
                 var test = data[0];
-                getGeocoder(data);
+                addMarker(data);
             }
         });
     }
-    function getGeocoder(data) {
+    function addMarker(data) {
         var newGeocoder = new AMap.Geocoder({
             city: document.getElementById('citycode').innerHTML,
             radius: 1000 //范围，默认：500
         })
-        for(var o in data){
-            newGeocoder.getLocation(data[o].houseLocation, function (status, result) {
+        for(var index in data){
+            newGeocoder.getLocation(data[index].houseLocation, function (status, result) {
                 if (status === 'complete' && result.info === 'OK') {
-                    addMarker(result);
+                    var geocode = result.geocodes[0];
+                    marker = new AMap.Marker({
+                        icon: "http://webapi.amap.com/theme/v1.3/markers/n/mark_b.png",
+                        position: [geocode.location.getLng(), geocode.location.getLat()]
+                    });
+                    marker.content = "<div><a target = '_blank' href='" + data[index].houseURL + "'>房源：" + data[index].houseTitle + "  租金：" + data[index].money + "</a><div>"
+                    marker.setMap(map);
+                    marker.on('click', markClick);
                 }
             });
         }
     }
-    function addMarker(result){
-        var geocode = result.geocodes[0];
-        marker = new AMap.Marker({
-            icon: "http://webapi.amap.com/theme/v1.3/markers/n/mark_b.png",
-            position: [geocode.location.getLng(), geocode.location.getLat()]
-        });
-        marker.setMap(map);
+    function markClick(e){
+        var infoWindow = new AMap.InfoWindow({offset: new AMap.Pixel(0, -30)});
+        infoWindow.setContent(e.target.content);
+        infoWindow.open(map, e.target.getPosition());
     }
 </script>
 </html>
