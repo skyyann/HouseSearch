@@ -26,8 +26,8 @@ public class HouseController {
 
     @ResponseBody
     @RequestMapping(value = "/HouseSearch", method = RequestMethod.POST)
-    public List<HouseInfo> HouseSearch(String cityCode, String minPrice, String maxPrice){
-        String url ="http://" + cityCode + ".58.com/pinpaigongyu/pn/1/?minprice=" + minPrice + "_" + maxPrice;
+    public List<HouseInfo> HouseSearch(String cityCode, String minPrice, String maxPrice, String page){
+        String url ="http://" + cityCode + ".58.com/pinpaigongyu/pn/" + page + "/?minprice=" + minPrice + "_" + maxPrice;
         List<HouseInfo> lstHouseInfo = new ArrayList<HouseInfo>();
         try{
             double start = System.currentTimeMillis();
@@ -48,5 +48,21 @@ public class HouseController {
 
         }
         return lstHouseInfo;
+    }
+
+    @ResponseBody
+    @RequestMapping(value = "/GetTotalPages", method = RequestMethod.POST)
+    public int GetTotalPages(String cityCode, String minPrice, String maxPrice){
+        String url ="http://" + cityCode + ".58.com/pinpaigongyu/pn/1/?minprice=" + minPrice + "_" + maxPrice;
+        int pages = 0;
+        try{
+            Document doc = Jsoup.connect(url).get();
+            int listsum = Integer.valueOf(doc.getElementsByClass("listsum").select("em").text());
+            pages = listsum % 20 == 0 ? listsum / 20 : listsum / 20 + 1;
+        }
+        catch(IOException ex){
+
+        }
+        return pages;
     }
 }

@@ -31,7 +31,7 @@
             <label>最高价格</label>
             <input id="maxprice" class="form-control col-md-1"/>
         </div>
-        <button class="btn btn-primary" onclick="serach()">搜索</button>
+        <button class="btn btn-primary" onclick="btnClick()">搜索</button>
     </div>
 </div>
 </body>
@@ -40,7 +40,9 @@
         zoom: 12,
         center: [116.397428, 39.9092]
     });
+
     map.on('moveend', getCity);
+
     function getCity() {
         map.getCity(function (data) {
             if (data['citycode'] && typeof data['citycode'] === 'string') {
@@ -49,23 +51,54 @@
             }
         });
     }
-    function serach() {
+
+    function btnClick() {
+        var pages = getTotalPages();
+        var index = 1;
+        houseSerach(index, pages);
+    }
+
+    function getTotalPages() {
+        var pagenum;
         $.ajax({
             type: "POST",
-            url: "HouseSearch",
+            url: "GetTotalPages",
             async: false,
             data: {
                 cityCode: document.getElementById('citycode').innerHTML,
                 minPrice: document.getElementById('minprice').value,
-                maxPrice: document.getElementById('maxprice').value
+                maxPrice: document.getElementById('maxprice').value,
+            },
+            success: function (data) {
+                pagenum = data;
+            }
+        });
+        return pagenum;
+    }
+
+    function houseSerach(index, pages){
+        if(index > pages){
+            return;
+        };
+        $.ajax({
+            type: "POST",
+            url: "HouseSearch",
+            data: {
+                cityCode: document.getElementById('citycode').innerHTML,
+                minPrice: document.getElementById('minprice').value,
+                maxPrice: document.getElementById('maxprice').value,
+                page: index
             },
             success: function (data) {
                 for (var key in data) {
                     addMarker(data[key]);
                 }
+                index++;
+                houseSerach(index, pages);
             }
         });
     }
+
     function addMarker(info) {
         var newGeocoder = new AMap.Geocoder({
             city: document.getElementById('citycode').innerHTML,
@@ -83,10 +116,12 @@
             }
         });
     }
+
     function markClick(e) {
         var infoWindow = new AMap.InfoWindow({offset: new AMap.Pixel(0, -30)});
         infoWindow.setContent(e.target.content);
         infoWindow.open(map, e.target.getPosition());
     }
+
 </script>
 </html>

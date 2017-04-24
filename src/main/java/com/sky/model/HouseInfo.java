@@ -7,6 +7,7 @@ public class HouseInfo {
     private String houseTitle;
     private String houseURL;
     private String money;
+    private String houseLocation;
 
     public String getHouseTitle() {
         return houseTitle;
@@ -40,5 +41,4 @@ public class HouseInfo {
         this.houseLocation = houseLocation;
     }
 
-    private String houseLocation;
 }
