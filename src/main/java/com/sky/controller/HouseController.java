@@ -19,7 +19,7 @@ import java.util.List;
  */
 @Controller
 public class HouseController {
-    @RequestMapping("/index")
+    @RequestMapping("/")
     public String Index(){
         return "index";
     }

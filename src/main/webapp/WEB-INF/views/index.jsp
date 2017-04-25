@@ -21,7 +21,6 @@
         <div class="form-group">
             <label>当前城市：</label>
             <label id="city">北京市</label>
-            <label id="citycode" style="display:none">010</label>
         </div>
         <div class="form-group">
             <label>最低价格</label>
@@ -36,6 +35,8 @@
 </div>
 </body>
 <script>
+    var cityCode;
+    var temp = "010";
     var map = new AMap.Map('container', {
         zoom: 12,
         center: [116.397428, 39.9092]
@@ -47,12 +48,13 @@
         map.getCity(function (data) {
             if (data['citycode'] && typeof data['citycode'] === 'string') {
                 document.getElementById('city').innerHTML = (data['city'] || data['province']);
-                document.getElementById('citycode').innerHTML = data['citycode'];
+                temp = data['citycode'];
             }
         });
     }
 
     function btnClick() {
+        cityCode = temp;
         var pages = getTotalPages();
         var index = 1;
         houseSerach(index, pages);
@@ -65,7 +67,7 @@
             url: "GetTotalPages",
             async: false,
             data: {
-                cityCode: document.getElementById('citycode').innerHTML,
+                cityCode: cityCode,
                 minPrice: document.getElementById('minprice').value,
                 maxPrice: document.getElementById('maxprice').value,
             },
@@ -84,7 +86,7 @@
             type: "POST",
             url: "HouseSearch",
             data: {
-                cityCode: document.getElementById('citycode').innerHTML,
+                cityCode: cityCode,
                 minPrice: document.getElementById('minprice').value,
                 maxPrice: document.getElementById('maxprice').value,
                 page: index
@@ -101,8 +103,8 @@
 
     function addMarker(info) {
         var newGeocoder = new AMap.Geocoder({
-            city: document.getElementById('citycode').innerHTML,
-            radius: 10000 //范围，默认：500
+            city: cityCode,
+            radius: 1000 //范围，默认：500
         }).getLocation(info.houseLocation, function (status, result) {
             if (status === 'complete' && result.info === 'OK') {
                 var geocode = result.geocodes[0];
