@@ -19,37 +19,21 @@ import java.util.List;
  */
 @Controller
 public class HouseController {
+    /**
+     * 返回首页，加载地图
+     */
     @RequestMapping("/")
     public String Index(){
         return "index";
     }
 
-    @ResponseBody
-    @RequestMapping(value = "/HouseSearch", method = RequestMethod.POST)
-    public List<HouseInfo> HouseSearch(String cityCode, String minPrice, String maxPrice, String page){
-        String url ="http://" + cityCode + ".58.com/pinpaigongyu/pn/" + page + "/?minprice=" + minPrice + "_" + maxPrice;
-        List<HouseInfo> lstHouseInfo = new ArrayList<HouseInfo>();
-        try{
-            double start = System.currentTimeMillis();
-            Document doc = Jsoup.connect(url).get();
-            Elements lists = doc.getElementsByAttribute("logr");
-            for(Element list : lists){
-                HouseInfo houseInfo = new HouseInfo();
-                String[] houseInfoArray= list.getElementsByTag("h2").first().text().split(" ");
-                houseInfo.setHouseTitle(list.getElementsByTag("h2").first().text());
-                houseInfo.setHouseURL("http://" + cityCode + ".58.com" + list.getElementsByTag("a").first().attributes().get("href"));
-                houseInfo.setMoney(list.getElementsByClass("money").tagName("b").text());
-                houseInfo.setHouseLocation(houseInfoArray[1]);
-                lstHouseInfo.add(houseInfo);
-            }
-            double time = (System.currentTimeMillis() - start) * 0.001;
-        }
-        catch(IOException ex){
-
-        }
-        return lstHouseInfo;
-    }
-
+    /**
+     * 获取总页数，返回给前台
+     * @param cityCode
+     * @param minPrice
+     * @param maxPrice
+     * @return
+     */
     @ResponseBody
     @RequestMapping(value = "/GetTotalPages", method = RequestMethod.POST)
     public int GetTotalPages(String cityCode, String minPrice, String maxPrice){
@@ -64,5 +48,37 @@ public class HouseController {
 
         }
         return pages;
+    }
+
+    /**
+     * 从58同城获取房租信息，解析html并封装为List，返回给前台
+     * @param cityCode
+     * @param minPrice
+     * @param maxPrice
+     * @param page
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value = "/HouseSearch", method = RequestMethod.POST)
+    public List<HouseInfo> HouseSearch(String cityCode, String minPrice, String maxPrice, String page){
+        String url ="http://" + cityCode + ".58.com/pinpaigongyu/pn/" + page + "/?minprice=" + minPrice + "_" + maxPrice;
+        List<HouseInfo> lstHouseInfo = new ArrayList<HouseInfo>();
+        try{
+            Document doc = Jsoup.connect(url).get();
+            Elements lists = doc.getElementsByAttribute("logr");
+            for(Element list : lists){
+                HouseInfo houseInfo = new HouseInfo();
+                String[] houseInfoArray= list.getElementsByTag("h2").first().text().split(" ");
+                houseInfo.setHouseTitle(list.getElementsByTag("h2").first().text());
+                houseInfo.setHouseURL("http://" + cityCode + ".58.com" + list.getElementsByTag("a").first().attributes().get("href"));
+                houseInfo.setMoney(list.getElementsByClass("money").tagName("b").text());
+                houseInfo.setHouseLocation(houseInfoArray[1]);
+                lstHouseInfo.add(houseInfo);
+            }
+        }
+        catch(IOException ex){
+
+        }
+        return lstHouseInfo;
     }
 }
