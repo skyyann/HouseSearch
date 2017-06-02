@@ -15,7 +15,7 @@
 
     <!--用于支持Servlet、JSP视图解析-->
     <bean class = "org.springframework.web.servlet.view.InternalResourceViewResolver">
-        <property name="prefix" value="/WEB-INF/views/" />
+        <property name="prefix" value="/views/" />
         <property name="suffix" value=".jsp"/>
     </bean>
 </beans>

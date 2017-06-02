@@ -54,10 +54,15 @@
     }
 
     function btnClick() {
-        cityCode = temp;
-        var pages = getTotalPages();
-        var index = 1;
-        houseSerach(index, pages);
+        if (parseInt(document.getElementById('minprice').value) >= 0 && parseInt(document.getElementById('minprice').value) < parseInt(document.getElementById('maxprice').value)) {
+            cityCode = temp;
+            var pages = getTotalPages();
+            var index = 1;
+            houseSerach(index, pages);
+        }
+        else {
+            alert("数据输入有误，请重新输入！");
+        }
     }
 
     function getTotalPages() {
@@ -78,10 +83,11 @@
         return pagenum;
     }
 
-    function houseSerach(index, pages){
-        if(index > pages){
+    function houseSerach(index, pages) {
+        if (index > pages) {
             return;
-        };
+        }
+        ;
         $.ajax({
             type: "POST",
             url: "HouseSearch",
