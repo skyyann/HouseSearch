@@ -37,13 +37,17 @@
 <script>
     var cityCode;
     var temp = "010";
+
+    //加载地图
     var map = new AMap.Map('container', {
         zoom: 12,
         center: [116.397428, 39.9092]
     });
 
+    //绑定地图移动事件
     map.on('moveend', getCity);
 
+    //获取当前城市
     function getCity() {
         map.getCity(function (data) {
             if (data['citycode'] && typeof data['citycode'] === 'string') {
@@ -53,7 +57,9 @@
         });
     }
 
+    //绑定提交按钮
     function btnClick() {
+        //数据验证，以防非法数据
         if (parseInt(document.getElementById('minprice').value) >= 0 && parseInt(document.getElementById('minprice').value) < parseInt(document.getElementById('maxprice').value)) {
             cityCode = temp;
             var pages = getTotalPages();
@@ -65,6 +71,7 @@
         }
     }
 
+    //获取总页数
     function getTotalPages() {
         var pagenum;
         $.ajax({
@@ -83,11 +90,11 @@
         return pagenum;
     }
 
+    //循环获取房租信息
     function houseSerach(index, pages) {
         if (index > pages) {
             return;
         }
-        ;
         $.ajax({
             type: "POST",
             url: "HouseSearch",
@@ -107,6 +114,7 @@
         });
     }
 
+    //添加坐标标记
     function addMarker(info) {
         var newGeocoder = new AMap.Geocoder({
             city: cityCode,
@@ -125,6 +133,7 @@
         });
     }
 
+    //绑定弹出信息事件
     function markClick(e) {
         var infoWindow = new AMap.InfoWindow({offset: new AMap.Pixel(0, -30)});
         infoWindow.setContent(e.target.content);
