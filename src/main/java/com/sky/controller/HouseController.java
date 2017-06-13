@@ -20,6 +20,9 @@ import sun.net.www.http.HttpClient;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by Sky on 2017/4/20.
@@ -30,13 +33,14 @@ public class HouseController {
      * 返回首页，加载地图
      */
     @RequestMapping("/")
-    public String Index(){
+    public String Index() {
         return "index";
     }
 
     /**
      * 获取总页数，返回给前台
      * 参数
+     *
      * @param cityCode 城市
      * @param minPrice 最低价格
      * @param maxPrice 最高价格
@@ -44,16 +48,15 @@ public class HouseController {
      */
     @ResponseBody
     @RequestMapping(value = "/GetTotalPages", method = RequestMethod.POST)
-    public int GetTotalPages(String cityCode, String minPrice, String maxPrice){
+    public int GetTotalPages(String cityCode, String minPrice, String maxPrice) {
         //构建URL
-        String url ="http://" + cityCode + ".58.com/pinpaigongyu/pn/1/?minprice=" + minPrice + "_" + maxPrice;
+        String url = "http://" + cityCode + ".58.com/pinpaigongyu/pn/1/?minprice=" + minPrice + "_" + maxPrice;
         int pages = 0;
-        try{
+        try {
             Document doc = Jsoup.connect(url).get();
             int listsum = Integer.valueOf(doc.getElementsByClass("listsum").select("em").text());
             pages = listsum % 20 == 0 ? listsum / 20 : listsum / 20 + 1;  //计算页数
-        }
-        catch(IOException ex){
+        } catch (IOException ex) {
 
         }
         return pages;
@@ -62,56 +65,68 @@ public class HouseController {
     /**
      * 从58同城获取房租信息，解析html并封装为List，返回给前台
      * 参数
+     *
      * @param cityCode 城市
      * @param minPrice 最低价格
      * @param maxPrice 最高价格
-     * @param page 当前页数
+     * @param page     当前页数
      * @return list 返回封装的信息
      */
     @ResponseBody
     @RequestMapping(value = "/HouseSearch", method = RequestMethod.POST)
-    public List<HouseInfo> HouseSearch(String cityCode, String minPrice, String maxPrice, String page){
-        //构建UR
-        String url ="http://" + cityCode + ".58.com/pinpaigongyu/pn/" + page + "/?minprice=" + minPrice + "_" + maxPrice;
+    public List<HouseInfo> HouseSearch(String cityCode, String minPrice, String maxPrice, String page) {
+        if(Integer.parseInt(minPrice) > Integer.parseInt(maxPrice)){
+            return null;
+        }
+
+        //构建线程池
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
         List<HouseInfo> lstHouseInfo = new ArrayList<HouseInfo>();
-        //http
-        CloseableHttpClient client = HttpClients.createDefault();
+
+        for (int i = Integer.parseInt(page); i < Integer.parseInt(page) + 5; i++) {
+            //构建URL
+            String url = "http://" + cityCode + ".58.com/pinpaigongyu/pn/" + i + "/?minprice=" + minPrice + "_" + maxPrice;
+            fixedThreadPool.execute(new Runnable() {
+                @Override
+                public void run() {
+                    //http
+                    CloseableHttpClient client = HttpClients.createDefault();
+                    try {
+                        //构建Httpclient，爬取url
+                        HttpGet get = new HttpGet(url);
+
+                        //设置响应头
+                        get.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
+
+                        //获取响应
+                        CloseableHttpResponse response = client.execute(get);
+                        HttpEntity entity = response.getEntity();
+                        String html = EntityUtils.toString(entity, "UTF-8");
+
+                        //解析html
+                        Document doc = Jsoup.parse(html);
+                        Elements lists = doc.getElementsByAttribute("logr");
+                        for (Element list : lists) {
+                            //将关键信息提取出来
+                            HouseInfo houseInfo = new HouseInfo();
+                            String[] houseInfoArray = list.getElementsByTag("h2").first().text().split(" ");
+                            houseInfo.setHouseTitle(list.getElementsByTag("h2").first().text());
+                            houseInfo.setHouseURL("http://" + cityCode + ".58.com" + list.getElementsByTag("a").first().attributes().get("href"));
+                            houseInfo.setMoney(list.getElementsByClass("money").tagName("b").text());
+                            houseInfo.setHouseLocation(houseInfoArray[1]);
+                            lstHouseInfo.add(houseInfo);
+                        }
+                    } catch (IOException ex) {
+
+                    }
+                }
+            });
+        }
+        fixedThreadPool.shutdown();
         try{
-            //构建Httpclient，爬取url
-            HttpGet get = new HttpGet(url);
-
-            //设置响应头
-            get.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
-
-            //获取响应
-            CloseableHttpResponse response = client.execute(get);
-            HttpEntity entity = response.getEntity();
-            String html= EntityUtils.toString(entity,"UTF-8");
-
-            //解析html
-            Document doc = Jsoup.parse(html);
-            Elements lists = doc.getElementsByAttribute("logr");
-            for(Element list : lists){
-                //将关键信息提取出来
-                HouseInfo houseInfo = new HouseInfo();
-                String[] houseInfoArray= list.getElementsByTag("h2").first().text().split(" ");
-                houseInfo.setHouseTitle(list.getElementsByTag("h2").first().text());
-                houseInfo.setHouseURL("http://" + cityCode + ".58.com" + list.getElementsByTag("a").first().attributes().get("href"));
-                houseInfo.setMoney(list.getElementsByClass("money").tagName("b").text());
-                houseInfo.setHouseLocation(houseInfoArray[1]);
-                lstHouseInfo.add(houseInfo);
-            }
-        }
-        catch(IOException ex){
-
-        }
-        finally {
-            try{
-                client.close();
-            }
-            catch(IOException e){
-
-            }
+            while(!fixedThreadPool.isTerminated());
+        }catch(Exception e){
+            e.printStackTrace();
         }
         return lstHouseInfo;
     }

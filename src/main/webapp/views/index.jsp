@@ -105,11 +105,11 @@
                 page: index
             },
             success: function (data) {
+                index = index + 5;
+                houseSerach(index, pages);
                 for (var key in data) {
                     addMarker(data[key]);
                 }
-                index++;
-                houseSerach(index, pages);
             }
         });
     }
