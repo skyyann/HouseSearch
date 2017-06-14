@@ -3,6 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>租房搜索</title>
+    <link rel="shortcut icon" href="../icon/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css"
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
@@ -12,25 +13,52 @@
     <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"
             integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
             crossorigin="anonymous"></script>
+    <style type="text/css">
+        .col-md-4 {
+            font-size: 20px;
+            font-family: "微软雅黑";
+        }
+    </style>
 </head>
 <body>
 <div class="container">
     <div id="container" clss="col-md-10">
     </div>
     <div class="col-md-4 col-md-offset-9">
-        <div class="form-group">
+        <div class="row form-group">
             <label>当前城市：</label>
             <label id="city">北京市</label>
         </div>
-        <div class="form-group">
+        <div class="row form-group">
             <label>最低价格</label>
-            <input id="minprice" class="form-control col-md-1"/>
+            <input id="minprice" class="form-control"/>
         </div>
-        <div class="form-group">
+        <div class="row form-group">
             <label>最高价格</label>
-            <input id="maxprice" class="form-control col-md-1"/>
+            <input id="maxprice" class="form-control"/>
         </div>
-        <button class="btn btn-primary" onclick="btnClick()">搜索</button>
+        <div class="row form-group">
+            <label>面积</label>
+            <select id="area" class="form-control">
+                <option value="">请选择</option>
+                <option value="&area=0_10">10m²以下</option>
+                <option value="&area=10_30">10-30m²</option>
+                <option value="&area=30_50">30-50m²</option>
+                <option value="&area=50_70">50-70m²</option>
+                <option value="&area=70_90">70-90m²</option>
+                <option value="&area=90_300">90m²以上</option>
+            </select>
+        </div>
+        <div class="row form-group">
+            <label>靠近地铁</label>
+            <select id="subway" class="form-control">
+                <option value="">否</option>
+                <option value="&pagetype=sub">是</option>
+            </select>
+        </div>
+        <div class="row form-group">
+            <button class="btn btn-primary" onclick="btnClick()">搜索</button>
+        </div>
     </div>
 </div>
 </body>
@@ -82,6 +110,8 @@
                 cityCode: cityCode,
                 minPrice: document.getElementById('minprice').value,
                 maxPrice: document.getElementById('maxprice').value,
+                area: document.getElementById("area").value,
+                subway: document.getElementById("subway").value
             },
             success: function (data) {
                 pagenum = data;
@@ -102,7 +132,9 @@
                 cityCode: cityCode,
                 minPrice: document.getElementById('minprice').value,
                 maxPrice: document.getElementById('maxprice').value,
-                page: index
+                page: index,
+                area: document.getElementById("area").value,
+                subway: document.getElementById("subway").value
             },
             success: function (data) {
                 index = index + 5;

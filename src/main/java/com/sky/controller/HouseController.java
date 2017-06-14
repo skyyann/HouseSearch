@@ -48,9 +48,10 @@ public class HouseController {
      */
     @ResponseBody
     @RequestMapping(value = "/GetTotalPages", method = RequestMethod.POST)
-    public int GetTotalPages(String cityCode, String minPrice, String maxPrice) {
+    public int GetTotalPages(String cityCode, String minPrice, String maxPrice, String area, String subway) {
         //构建URL
-        String url = "http://" + cityCode + ".58.com/pinpaigongyu/pn/1/?minprice=" + minPrice + "_" + maxPrice;
+        String url = "http://" + cityCode + ".58.com/pinpaigongyu/pn/1/?minprice=" + minPrice
+                + "_" + maxPrice + area + subway;
         int pages = 0;
         try {
             Document doc = Jsoup.connect(url).get();
@@ -74,51 +75,49 @@ public class HouseController {
      */
     @ResponseBody
     @RequestMapping(value = "/HouseSearch", method = RequestMethod.POST)
-    public List<HouseInfo> HouseSearch(String cityCode, String minPrice, String maxPrice, String page) {
+    public List<HouseInfo> HouseSearch(String cityCode, String minPrice, String maxPrice, String page, String area, String subway) {
         if(Integer.parseInt(minPrice) > Integer.parseInt(maxPrice)){
             return null;
         }
 
-        //构建线程池
-        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
         List<HouseInfo> lstHouseInfo = new ArrayList<HouseInfo>();
 
+
+        //构建线程池
+        ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
         for (int i = Integer.parseInt(page); i < Integer.parseInt(page) + 5; i++) {
             //构建URL
-            String url = "http://" + cityCode + ".58.com/pinpaigongyu/pn/" + i + "/?minprice=" + minPrice + "_" + maxPrice;
-            fixedThreadPool.execute(new Runnable() {
-                @Override
-                public void run() {
-                    //http
-                    CloseableHttpClient client = HttpClients.createDefault();
-                    try {
-                        //构建Httpclient，爬取url
-                        HttpGet get = new HttpGet(url);
+            String url = "http://" + cityCode + ".58.com/pinpaigongyu/pn/" + i + "/?minprice=" + minPrice
+                    + "_" + maxPrice + area + subway;
+            fixedThreadPool.execute(() -> {
+                CloseableHttpClient client = HttpClients.createDefault();
+                try {
+                    //构建Httpclient，爬取url
+                    HttpGet get = new HttpGet(url);
 
-                        //设置响应头
-                        get.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
+                    //设置响应头
+                    get.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
 
-                        //获取响应
-                        CloseableHttpResponse response = client.execute(get);
-                        HttpEntity entity = response.getEntity();
-                        String html = EntityUtils.toString(entity, "UTF-8");
+                    //获取响应
+                    CloseableHttpResponse response = client.execute(get);
+                    HttpEntity entity = response.getEntity();
+                    String html = EntityUtils.toString(entity, "UTF-8");
 
-                        //解析html
-                        Document doc = Jsoup.parse(html);
-                        Elements lists = doc.getElementsByAttribute("logr");
-                        for (Element list : lists) {
-                            //将关键信息提取出来
-                            HouseInfo houseInfo = new HouseInfo();
-                            String[] houseInfoArray = list.getElementsByTag("h2").first().text().split(" ");
-                            houseInfo.setHouseTitle(list.getElementsByTag("h2").first().text());
-                            houseInfo.setHouseURL("http://" + cityCode + ".58.com" + list.getElementsByTag("a").first().attributes().get("href"));
-                            houseInfo.setMoney(list.getElementsByClass("money").tagName("b").text());
-                            houseInfo.setHouseLocation(houseInfoArray[1]);
-                            lstHouseInfo.add(houseInfo);
-                        }
-                    } catch (IOException ex) {
-
+                    //解析html
+                    Document doc = Jsoup.parse(html);
+                    Elements lists = doc.getElementsByAttribute("logr");
+                    for (Element list : lists) {
+                        //将关键信息提取出来
+                        HouseInfo houseInfo = new HouseInfo();
+                        String[] houseInfoArray = list.getElementsByTag("h2").first().text().split(" ");
+                        houseInfo.setHouseTitle(list.getElementsByTag("h2").first().text());
+                        houseInfo.setHouseURL("http://" + cityCode + ".58.com" + list.getElementsByTag("a").first().attributes().get("href"));
+                        houseInfo.setMoney(list.getElementsByClass("money").tagName("b").text());
+                        houseInfo.setHouseLocation(houseInfoArray[1]);
+                        lstHouseInfo.add(houseInfo);
                     }
+                } catch (IOException ex) {
+
                 }
             });
         }
