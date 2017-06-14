@@ -76,27 +76,30 @@ public class HouseController {
     @ResponseBody
     @RequestMapping(value = "/HouseSearch", method = RequestMethod.POST)
     public List<HouseInfo> HouseSearch(String cityCode, String minPrice, String maxPrice, String page, String area, String subway) {
-        if(Integer.parseInt(minPrice) > Integer.parseInt(maxPrice)){
+        if (Integer.parseInt(minPrice) > Integer.parseInt(maxPrice)) {
             return null;
         }
 
         List<HouseInfo> lstHouseInfo = new ArrayList<HouseInfo>();
 
-
         //构建线程池
         ExecutorService fixedThreadPool = Executors.newFixedThreadPool(5);
+
         for (int i = Integer.parseInt(page); i < Integer.parseInt(page) + 5; i++) {
             //构建URL
             String url = "http://" + cityCode + ".58.com/pinpaigongyu/pn/" + i + "/?minprice=" + minPrice
                     + "_" + maxPrice + area + subway;
+
             fixedThreadPool.execute(() -> {
                 CloseableHttpClient client = HttpClients.createDefault();
                 try {
                     //构建Httpclient，爬取url
                     HttpGet get = new HttpGet(url);
 
-                    //设置响应头
-                    get.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36 Edge/15.15063");
+                    //设置请求头
+                    get.setHeader("Accept", "text/html, application/xhtml+xml, image/jxr, */*");
+                    get.setHeader("Accept-Language", "zh-Hans-CN, zh-Hans; q=0.8, en-US; q=0.5, en; q=0.3");
+                    get.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36");
 
                     //获取响应
                     CloseableHttpResponse response = client.execute(get);
@@ -122,9 +125,10 @@ public class HouseController {
             });
         }
         fixedThreadPool.shutdown();
-        try{
-            while(!fixedThreadPool.isTerminated());
-        }catch(Exception e){
+
+        try {
+            while (!fixedThreadPool.isTerminated()) ;
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return lstHouseInfo;

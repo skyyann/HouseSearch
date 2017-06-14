@@ -68,7 +68,7 @@
 
     //加载地图
     var map = new AMap.Map('container', {
-        zoom: 12,
+        zoom: 11,
         center: [116.397428, 39.9092]
     });
 
@@ -105,7 +105,6 @@
         $.ajax({
             type: "POST",
             url: "GetTotalPages",
-            async: false,
             data: {
                 cityCode: cityCode,
                 minPrice: document.getElementById('minprice').value,
