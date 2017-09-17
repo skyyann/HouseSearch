@@ -1,14 +1,6 @@
-# Maven #
-target/
-
-# IDEA #
+# Created by .ignore support plugin
+# IntelliJ
 .idea/
 *.iml
-
-# Eclipse #
-.settings/
-.classpath
-.project
-
-# logs file #
-logs/
+target/
+/out/
