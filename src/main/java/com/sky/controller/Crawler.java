@@ -2,6 +2,7 @@ package com.sky.controller;
 
 import com.sky.model.HouseInfo;
 import org.apache.http.HttpEntity;
+import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -39,7 +40,6 @@ public class Crawler implements Callable<List<HouseInfo>> {
             CloseableHttpResponse response = client.execute(get);
             HttpEntity entity = response.getEntity();
             String html = EntityUtils.toString(entity, "UTF-8");
-
             //解析html
             Document doc = Jsoup.parse(html);
             Elements lists = doc.getElementsByAttribute("logr");
